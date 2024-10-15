@@ -37,6 +37,11 @@ LEFT JOIN Past_Surgeries ps ON pi.Aadhar_number = ps.Aadhar_number
 WHERE pi.Aadhar_number = '123456789012'
 GROUP BY pi.Aadhar_number;
 
+
+-- insert doctor
+INSERT INTO Doctors (Doctor_Name, Specialization) VALUES ('Dr. Krishna', 'General Practitioner');
+
+
 -- 6. Record doctor visit details
 INSERT INTO Doctor_Visit (Aadhar_number, Visiting_id, Visit_Date, Visit_Reason, Doctor_ID, Diagnosis, Treatment_Plan)
 VALUES ('123456789012', 1, CURDATE(), 'Annual checkup', 1, 'Healthy', 'Continue current lifestyle');

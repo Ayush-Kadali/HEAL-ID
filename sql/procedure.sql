@@ -61,35 +61,46 @@ BEGIN
     WHERE Aadhar_number = p_aadhar_number;
     
     -- Generate report
-    SELECT CONCAT('Health Report for ', v_patient_name) AS report_header;
-    SELECT CONCAT('Date of Birth: ', DATE_FORMAT(v_dob, '%d-%b-%Y')) AS dob;
-    SELECT CONCAT('Gender: ', v_gender) AS gender;
-    SELECT CONCAT('Blood Pressure: ', v_blood_pressure) AS blood_pressure;
-    SELECT CONCAT('Heart Rate: ', v_heart_rate) AS heart_rate;
-    SELECT CONCAT('BMI: ', v_bmi) AS bmi;
-    
-    SELECT 'Medical History:' AS section_header;
-    SELECT Family_Medical_History
+    SELECT 'Patient Information' AS section, 
+           CONCAT('Name: ', v_patient_name) AS details
+    UNION ALL
+    SELECT 'Patient Information', 
+           CONCAT('Date of Birth: ', DATE_FORMAT(v_dob, '%d-%b-%Y'))
+    UNION ALL
+    SELECT 'Patient Information', 
+           CONCAT('Gender: ', v_gender)
+    UNION ALL
+    SELECT 'Vital Signs', 
+           CONCAT('Blood Pressure: ', v_blood_pressure)
+    UNION ALL
+    SELECT 'Vital Signs', 
+           CONCAT('Heart Rate: ', v_heart_rate)
+    UNION ALL
+    SELECT 'Vital Signs', 
+           CONCAT('BMI: ', v_bmi);
+
+    SELECT 'Medical History' AS section, 
+           Family_Medical_History AS details
     FROM Medical_History
     WHERE Aadhar_number = p_aadhar_number;
-    
-    SELECT 'Allergies:' AS section_header;
-    SELECT CONCAT('- ', Allergy) AS allergy
+
+    SELECT 'Allergies' AS section, 
+           GROUP_CONCAT(Allergy SEPARATOR ', ') AS details
     FROM Allergies
     WHERE Aadhar_number = p_aadhar_number;
-    
-    SELECT 'Chronic Conditions:' AS section_header;
-    SELECT CONCAT('- ', Condition_Name) AS chronic_condition
+
+    SELECT 'Chronic Conditions' AS section, 
+           GROUP_CONCAT(Condition_Name SEPARATOR ', ') AS details
     FROM Chronic_Conditions
     WHERE Aadhar_number = p_aadhar_number;
-    
-    SELECT 'Recent Doctor Visits:' AS section_header;
-    SELECT 
-        DATE_FORMAT(Visit_Date, '%d-%b-%Y') AS visit_date,
-        CONCAT('Reason: ', Visit_Reason) AS visit_reason,
-        CONCAT('Diagnosis: ', Diagnosis) AS diagnosis,
-        CONCAT('Treatment: ', Treatment_Plan) AS treatment_plan,
-        '---' AS separator
+
+    SELECT 'Recent Doctor Visits' AS section,
+           CONCAT(
+               'Date: ', DATE_FORMAT(Visit_Date, '%d-%b-%Y'), '\n',
+               'Reason: ', Visit_Reason, '\n',
+               'Diagnosis: ', Diagnosis, '\n',
+               'Treatment: ', Treatment_Plan
+           ) AS details
     FROM Doctor_Visit
     WHERE Aadhar_number = p_aadhar_number
     ORDER BY Visit_Date DESC
