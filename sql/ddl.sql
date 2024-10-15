@@ -132,3 +132,13 @@ CREATE TABLE IF NOT EXISTS Diet_Information (
     Diet_Details TEXT,
     FOREIGN KEY (Aadhar_number) REFERENCES Personal_Information(Aadhar_number)
 );
+
+CREATE TABLE IF NOT EXISTS Personal_Information_Audit (
+    Audit_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Aadhar_number VARCHAR(12),
+    Changed_Column VARCHAR(30),
+    Old_Value VARCHAR(255),
+    New_Value VARCHAR(255),
+    Changed_By VARCHAR(30),
+    Change_Date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
