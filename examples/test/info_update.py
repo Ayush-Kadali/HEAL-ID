@@ -79,6 +79,11 @@ def show_doctor_form(manager, doctor_id):
         ptg.tim.print("[red]Doctor not found.[/]")
 
 def start_consultation(manager, doctor_id):
+
+    consultation = ["Symptoms: ","Diagnosis: ","Treatment Plan: ","Lab Tests Required: ","Medications: ","Follow-up Date: ","Additional Notes: "]
+    lengt = []
+
+
     content = [
         ptg.InputField("Aadhar Number: ", prompt_style="bold"),
         ptg.Label(""),  # Spacer
@@ -95,14 +100,15 @@ def start_consultation(manager, doctor_id):
         ptg.Label("BMI: "),
         ptg.Label(""),  # Spacer
         ptg.Label("Consultation Details:"),
-        ptg.InputField("Symptoms: ", prompt_style="bold"),
-        ptg.InputField("Diagnosis: ", prompt_style="bold"),
-        ptg.InputField("Treatment Plan: ", prompt_style="bold"),
-        ptg.InputField("Lab Tests Required: ", prompt_style="bold"),
-        ptg.InputField("Medications: ", prompt_style="bold"),
-        ptg.InputField("Follow-up Date: ", prompt_style="bold"),
-        ptg.InputField("Additional Notes: ", prompt_style="bold"),
+        ptg.InputField(consultation[0], prompt_style="bold"),
+        ptg.InputField(consultation[1], prompt_style="bold"),
+        ptg.InputField(consultation[2], prompt_style="bold"),
+        ptg.InputField(consultation[3], prompt_style="bold"),
+        ptg.InputField(consultation[4], prompt_style="bold"),
+        ptg.InputField(consultation[5], prompt_style="bold"),
+        ptg.InputField(consultation[6], prompt_style="bold"),
     ]
+
 
     scroll_pos = [0]  # Use a list to store the scroll position so it can be modified in nested functions
     visible_items = 25  # Adjust this value based on your terminal size
@@ -147,8 +153,7 @@ def start_consultation(manager, doctor_id):
     manager.add(consultation_window)
 
 def fetch_patient_info(content, update_window):
-    aadhar_number = content[0].value
-    aadhar_number = aadhar_number[15:]
+    aadhar_number = content[0].value[15:]
     cursor.execute(f"""
         SELECT pi.Name, TIMESTAMPDIFF(YEAR, pi.Date_of_Birth, CURDATE()) AS Age, pi.Gender,
                vs.Blood_Pressure, vs.Heart_Rate, vs.Respiratory_Rate, vs.Body_Temperature,
@@ -175,16 +180,21 @@ def fetch_patient_info(content, update_window):
     else:
         ptg.tim.print("[red]Patient not found.[/]")
 
+def length_of_var(var):
+    a = var.index(":")
+    var = var[a+2:]
+    return var
+
 def submit_consultation(manager, window, doctor_id, content):
     aadhar_number = content[0].value
     aadhar_number = aadhar_number[15:]
-    symptoms = content[15].value
-    diagnosis = content[16].value
-    treatment_plan = content[17].value
-    lab_tests = content[18].value
-    medications = content[19].value
-    follow_up_date = content[20].value
-    additional_notes = content[21].value
+    symptoms = length_of_var(content[15].value)
+    diagnosis = length_of_var(content[16].value)
+    treatment_plan = length_of_var(content[17].value)
+    lab_tests =length_of_var( content[18].value)
+    medications =length_of_var( content[19].value)
+    follow_up_date =length_of_var( content[20].value)
+    additional_notes = length_of_var(content[21].value)
 
     try:
         cursor.execute("""
@@ -193,8 +203,9 @@ def submit_consultation(manager, window, doctor_id, content):
             VALUES (%s, CURDATE(), %s, %s, %s, %s)
         """, (aadhar_number, symptoms, doctor_id, diagnosis, treatment_plan))
         
-        
-        visiting_id = cursor.LAST_INSERT_ID()
+        cursor.execute("select Visiting_id from Doctor_Visit order by Visiting_id DESC limit 1;")
+
+        visiting_id = cursor.fetchone()
         print(visiting_id)
 
         if lab_tests:
