@@ -153,7 +153,8 @@ def start_consultation(manager, doctor_id):
 
 def fetch_patient_info(content, update_window):
     aadhar_number = content[0].value
-    cursor.execute("""
+    aadhar_number = aadhar_number[15:]
+    cursor.execute(f"""
         SELECT pi.Name, TIMESTAMPDIFF(YEAR, pi.Date_of_Birth, CURDATE()) AS Age, pi.Gender,
                vs.Blood_Pressure, vs.Heart_Rate, vs.Respiratory_Rate, vs.Body_Temperature,
                vs.Height, vs.Weight, vs.BMI
@@ -180,7 +181,6 @@ def fetch_patient_info(content, update_window):
         ptg.tim.print("[red]Patient not found.[/]")
 
 def submit_consultation(manager, window, doctor_id, content):
-    # Extract all the input values
     aadhar_number = content[0].value
     symptoms = content[15].value
     diagnosis = content[16].value
@@ -190,7 +190,6 @@ def submit_consultation(manager, window, doctor_id, content):
     follow_up_date = content[20].value
     additional_notes = content[21].value
 
-    # Insert into Doctor_Visit table
     try:
         cursor.execute("""
             INSERT INTO Doctor_Visit 
@@ -198,10 +197,8 @@ def submit_consultation(manager, window, doctor_id, content):
             VALUES (%s, CURDATE(), %s, %s, %s, %s)
         """, (aadhar_number, symptoms, doctor_id, diagnosis, treatment_plan))
         
-        # Get the auto-generated Visiting_id
         visiting_id = cursor.lastrowid
 
-        # Insert lab tests if any
         if lab_tests:
             cursor.execute("""
                 INSERT INTO Laboratory_Results (Visiting_id, Aadhar_number, Test_Name)
