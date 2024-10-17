@@ -105,7 +105,7 @@ def start_consultation(manager, doctor_id):
     ]
 
     scroll_pos = [0]  # Use a list to store the scroll position so it can be modified in nested functions
-    visible_items = 15  # Adjust this value based on your terminal size
+    visible_items = 25  # Adjust this value based on your terminal size
 
     def scroll_up(*_):
         if scroll_pos[0] > 0:
@@ -177,6 +177,7 @@ def fetch_patient_info(content, update_window):
 
 def submit_consultation(manager, window, doctor_id, content):
     aadhar_number = content[0].value
+    aadhar_number = aadhar_number[15:]
     symptoms = content[15].value
     diagnosis = content[16].value
     treatment_plan = content[17].value
@@ -192,7 +193,9 @@ def submit_consultation(manager, window, doctor_id, content):
             VALUES (%s, CURDATE(), %s, %s, %s, %s)
         """, (aadhar_number, symptoms, doctor_id, diagnosis, treatment_plan))
         
-        visiting_id = cursor.lastrowid
+        
+        visiting_id = cursor.LAST_INSERT_ID()
+        print(visiting_id)
 
         if lab_tests:
             cursor.execute("""
