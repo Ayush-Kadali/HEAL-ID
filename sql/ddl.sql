@@ -88,14 +88,13 @@ CREATE TABLE IF NOT EXISTS Doctors (
 );
 
 CREATE TABLE IF NOT EXISTS Doctor_Visit (
+    Visiting_id INT AUTO_INCREMENT PRIMARY KEY,
     Aadhar_number VARCHAR(12),
-    Visiting_id INT,
     Visit_Date DATE,
     Visit_Reason TEXT,
     Doctor_ID INT,
     Diagnosis TEXT,
     Treatment_Plan TEXT,
-    PRIMARY KEY (Aadhar_number, Visiting_id),
     FOREIGN KEY (Aadhar_number) REFERENCES Personal_Information(Aadhar_number),
     FOREIGN KEY (Doctor_ID) REFERENCES Doctors(Doctor_ID)
 );

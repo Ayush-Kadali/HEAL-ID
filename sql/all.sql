@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS Doctors (
 
 CREATE TABLE IF NOT EXISTS Doctor_Visit (
     Aadhar_number VARCHAR(12),
-    Visiting_id INT,
+    Visiting_id INT AUTO_INCREMENT,
     Visit_Date DATE,
     Visit_Reason TEXT,
     Doctor_ID INT,
