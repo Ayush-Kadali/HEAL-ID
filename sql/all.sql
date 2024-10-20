@@ -1,4 +1,5 @@
 -- Create the database
+--trying to commit (krishna)
 CREATE DATABASE IF NOT EXISTS heal_id;
 
 -- Use the database
