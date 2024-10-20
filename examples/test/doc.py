@@ -1,5 +1,6 @@
 import pytermgui as ptg
 import pymysql
+from pytermgui.ansi_interface import MouseAction, MouseEvent, report_mouse, translate_mouse
 
 # Database connection
 db = pymysql.connect(
@@ -68,7 +69,7 @@ def show_doctor_form(manager, doctor_id):
                 f"Welcome, {name}",
                 f"Specialization: {specialization}",
                 "",
-                ptg.Button("Start Consultation", lambda *_: start_consultation(doctor_id)),
+                ptg.Button("Start Consultation", lambda *_: start_consultation(manager, doctor_id)),
                 ptg.Button("Back", lambda *_: manager.remove(form_window)),
             )
             .set_title("Doctor Form")
@@ -78,10 +79,9 @@ def show_doctor_form(manager, doctor_id):
     else:
         ptg.tim.print("[red]Doctor not found.[/]")
 
-def start_consultation(doctor_id):
-    ptg.tim.print(f"[green]Starting consultation for Doctor ID: {doctor_id}[/]")
-
 def start_consultation(manager, doctor_id):
+    consultation = ["Symptoms: ", "Diagnosis: ", "Treatment Plan: ", "Lab Tests Required: ", "Medications: ", "Follow-up Date: ", "Additional Notes: "]
+
     content = [
         ptg.InputField("Aadhar Number: ", prompt_style="bold"),
         ptg.Label(""),  # Spacer
@@ -98,16 +98,10 @@ def start_consultation(manager, doctor_id):
         ptg.Label("BMI: "),
         ptg.Label(""),  # Spacer
         ptg.Label("Consultation Details:"),
-        ptg.InputField("Symptoms: ", prompt_style="bold"),
-        ptg.InputField("Diagnosis: ", prompt_style="bold"),
-        ptg.InputField("Treatment Plan: ", prompt_style="bold"),
-        ptg.InputField("Lab Tests Required: ", prompt_style="bold"),
-        ptg.InputField("Medications: ", prompt_style="bold"),
-        ptg.InputField("Follow-up Date: ", prompt_style="bold"),
-        ptg.InputField("Additional Notes: ", prompt_style="bold"),
+        *[ptg.InputField(field, prompt_style="bold") for field in consultation],
     ]
 
-    scroll_pos = [0]  # Use a list to store the scroll position so it can be modified in nested functions
+    scroll_pos = [0]
     visible_items = 15  # Adjust this value based on your terminal size
 
     def scroll_up(*_):
@@ -125,8 +119,7 @@ def start_consultation(manager, doctor_id):
 
     def update_window():
         visible_content = content[scroll_pos[0]:scroll_pos[0] + visible_items]
-        new_content = [
-            "New Consultation",
+        consultation_window.body = [
             *visible_content,
             ptg.Button("Fetch Patient Info", fetch_patient_info_and_update),
             ptg.Button("↑ Scroll Up", scroll_up),
@@ -134,10 +127,19 @@ def start_consultation(manager, doctor_id):
             ptg.Button("Submit", lambda *_: submit_consultation(manager, consultation_window, doctor_id, content)),
             ptg.Button("Back", lambda *_: manager.remove(consultation_window)),
         ]
-        consultation_window.set_content(*new_content)
+
+    class ScrollableWindow(ptg.Window):
+        def handle_key(self, key):
+            if key == "up":
+                scroll_up()
+                return True
+            elif key == "down":
+                scroll_down()
+                return True
+            return super().handle_key(key)
 
     consultation_window = (
-        ptg.Window(
+        ScrollableWindow(
             "New Consultation",
             *content[:visible_items],
             ptg.Button("Fetch Patient Info", fetch_patient_info_and_update),
@@ -149,12 +151,13 @@ def start_consultation(manager, doctor_id):
         .set_title("Consultation Form")
         .center()
     )
+
     manager.add(consultation_window)
 
+
 def fetch_patient_info(content, update_window):
-    aadhar_number = content[0].value
-    aadhar_number = aadhar_number[15:]
-    cursor.execute(f"""
+    aadhar_number = content[0].value[15:]
+    cursor.execute("""
         SELECT pi.Name, TIMESTAMPDIFF(YEAR, pi.Date_of_Birth, CURDATE()) AS Age, pi.Gender,
                vs.Blood_Pressure, vs.Heart_Rate, vs.Respiratory_Rate, vs.Body_Temperature,
                vs.Height, vs.Weight, vs.BMI
@@ -180,15 +183,21 @@ def fetch_patient_info(content, update_window):
     else:
         ptg.tim.print("[red]Patient not found.[/]")
 
+def length_of_var(var):
+    a = var.index(":")
+    var = var[a+2:]
+    return var
+
 def submit_consultation(manager, window, doctor_id, content):
     aadhar_number = content[0].value
-    symptoms = content[15].value
-    diagnosis = content[16].value
-    treatment_plan = content[17].value
-    lab_tests = content[18].value
-    medications = content[19].value
-    follow_up_date = content[20].value
-    additional_notes = content[21].value
+    aadhar_number = aadhar_number[15:]
+    symptoms = length_of_var(content[15].value)
+    diagnosis = length_of_var(content[16].value)
+    treatment_plan = length_of_var(content[17].value)
+    lab_tests = length_of_var(content[18].value)
+    medications = length_of_var(content[19].value)
+    follow_up_date = length_of_var(content[20].value)
+    additional_notes = length_of_var(content[21].value)
 
     try:
         cursor.execute("""
@@ -197,7 +206,8 @@ def submit_consultation(manager, window, doctor_id, content):
             VALUES (%s, CURDATE(), %s, %s, %s, %s)
         """, (aadhar_number, symptoms, doctor_id, diagnosis, treatment_plan))
         
-        visiting_id = cursor.lastrowid
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        visiting_id = cursor.fetchone()[0]
 
         if lab_tests:
             cursor.execute("""
@@ -212,26 +222,6 @@ def submit_consultation(manager, window, doctor_id, content):
     except pymysql.Error as e:
         db.rollback()
         ptg.tim.print(f"[red]An error occurred: {e}[/]")
-# Update the show_doctor_form function to use the new start_consultation function
-def show_doctor_form(manager, doctor_id):
-    cursor.execute("SELECT Doctor_Name, Specialization FROM Doctors WHERE Doctor_ID = %s", (doctor_id,))
-    result = cursor.fetchone()
-    if result:
-        name, specialization = result
-        form_window = (
-            ptg.Window(
-                f"Welcome, {name}",
-                f"Specialization: {specialization}",
-                "",
-                ptg.Button("Start Consultation", lambda *_: start_consultation(manager, doctor_id)),
-                ptg.Button("Back", lambda *_: manager.remove(form_window)),
-            )
-            .set_title("Doctor Form")
-            .center()
-        )
-        manager.add(form_window)
-    else:
-        ptg.tim.print("[red]Doctor not found.[/]")
 
 if __name__ == "__main__":
     main_menu()
