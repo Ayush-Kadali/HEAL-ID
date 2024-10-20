@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual.containers import Container, Horizontal, Vertical, ScrollableContainer
-from textual.widgets import Button, Header, Footer, Input, Static, Label, TextArea
+from textual.widgets import Button, Header, Footer, Input, Static, Label, TextArea, DataTable
 from textual.screen import Screen
 from textual import events
 import pymysql
@@ -220,7 +220,7 @@ class PatientHistoryDisplay(Screen):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         yield Static(f"HEAL-ID Patient History for Aadhar: {self.aadhar_number}", classes="title")
-        yield ScrollableContainer(id="history_display")
+        yield ScrollableContainer(DataTable(id="history_table"))
         yield Button("Back", id="back")
         yield Footer()
 
@@ -237,12 +237,14 @@ class PatientHistoryDisplay(Screen):
         """, (self.aadhar_number,))
         results = cursor.fetchall()
 
-        history_container = self.query_one("#history_display")
+        table = self.query_one("#history_table")
+        table.add_columns("Visit Date", "Doctor", "Diagnosis", "Treatment Plan")
+
         if results:
             for visit in results:
-                history_container.mount(Static(f"Date: {visit[0]}, Doctor: {visit[1]}, Diagnosis: {visit[2]}, Treatment: {visit[3]}"))
+                table.add_row(*visit)
         else:
-            history_container.mount(Static("No history found for this patient"))
+            table.add_row("No history found", "", "", "")
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "back":
@@ -306,6 +308,41 @@ class HEALID_App(App):
 
     Input, TextArea {
         width: 100%;
+    }
+    Input {
+        width: 100%;
+    }
+
+    #consultation_form {
+        width: 70%;
+        height: 100%;
+        border: solid green;
+        padding: 1 2;
+        overflow-y: auto;
+    }
+
+    #history_table {
+        height: 100%;
+        border: solid green;
+    }
+
+    DataTable > .datatable--header {
+        background: $accent;
+        color: $text;
+    }
+
+    DataTable > .datatable--body {
+        height: 1fr;
+    }
+
+    .datatable--row {
+        height: auto;
+    }
+
+    .datatable--row-cell {
+        content-align: left middle;
+        padding: 0 1;
+        height: auto;
     }
     """
 
