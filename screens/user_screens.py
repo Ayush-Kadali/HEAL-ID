@@ -2,10 +2,11 @@ from textual.app import ComposeResult
 from textual.containers import Container, ScrollableContainer
 from textual.screen import Screen
 from textual.widgets import Button, Header, Footer, Static, Input, Label, DataTable
-from database.connection import DatabaseConnection
+from database.connection import DatabaseConnection, db
 import pymysql
 
 
+cursor = db.cursor
 class UserMenu(Screen):
     def __init__(self, aadhar_number: str):
         super().__init__()

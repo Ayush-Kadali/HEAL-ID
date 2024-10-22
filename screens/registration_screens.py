@@ -2,10 +2,11 @@ from textual.app import ComposeResult
 from textual.containers import Container, ScrollableContainer, Horizontal
 from textual.screen import Screen
 from textual.widgets import Button, Header, Footer, Static, Input, Label
-from database.connection import DatabaseConnection
+from database.connection import DatabaseConnection, db
 import pymysql
 from datetime import datetime
 
+cursor = db.cursor
 
 class UserRegistration(Screen):
     def compose(self) -> ComposeResult:
@@ -102,7 +103,7 @@ class UserRegistration(Screen):
             # Commit transaction
             db.commit()
             self.notify("Registration successful!", severity="success")
-            valid_aadhar_numbers.append(aadhar)
+            db.valid_aadhar_numbers.append(aadhar)
             self.app.pop_screen()
 
         except pymysql.Error as e:
@@ -148,7 +149,7 @@ class DoctorRegistration(Screen):
 
             db.commit()
             doctor_id = cursor.lastrowid
-            valid_doctor_ids.append(str(doctor_id))
+            db.valid_doctor_ids.append(str(doctor_id))
             self.notify(f"Registration successful! Your Doctor ID is: {doctor_id}", severity="success")
             self.app.pop_screen()
 

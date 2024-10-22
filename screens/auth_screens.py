@@ -5,7 +5,8 @@ from textual.widgets import Button, Header, Footer, Static, Input
 from .user_screens import UserMenu
 from .doctor_screens import DoctorMenu
 from .registration_screens import UserRegistration, DoctorRegistration
-from database.connection import DatabaseConnection
+from database.connection import DatabaseConnection, db
+#from database.connection import db
 
 class SignInOptions(Screen):
     def compose(self) -> ComposeResult:
@@ -43,7 +44,7 @@ class DoctorSignIn(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "signin":
             doctor_id = self.query_one("#doctor_id").value
-            if doctor_id in valid_doctor_ids:
+            if doctor_id in db.valid_doctor_ids:
                 self.app.push_screen(DoctorMenu(doctor_id))
             else:
                 self.notify("Invalid Doctor ID", severity="error")
@@ -66,7 +67,7 @@ class UserSignIn(Screen):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "signin":
             aadhar_number = self.query_one("#aadhar_number").value
-            valid_aadhar_numbers = DatabaseConnection.get_valid_aadhar_numbers()
+            valid_aadhar_numbers = db.get_valid_aadhar_numbers()
             if aadhar_number in valid_aadhar_numbers:
                 self.app.push_screen(UserMenu(aadhar_number))
             else:

@@ -2,10 +2,12 @@ from textual.app import ComposeResult
 from textual.containers import Container, ScrollableContainer, Horizontal, Vertical
 from textual.screen import Screen
 from textual.widgets import Button, Header, Footer, Static, Input, Label, DataTable
-from database.connection import DatabaseConnection
+from database.connection import DatabaseConnection, db
+
 import pymysql
 from datetime import datetime
 
+cursor = db.cursor
 class DoctorMenu(Screen):
     def __init__(self, doctor_id: str):
         super().__init__()
