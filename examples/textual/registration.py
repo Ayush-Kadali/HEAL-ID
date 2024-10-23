@@ -21,7 +21,7 @@ def get_valid_doctor_ids():
     return [str(row[0]) for row in cursor.fetchall()]
 
 def get_valid_aadhar_numbers():
-    cursor.execute("SELECT Aadhar_number FROM Personal_Information")
+    cursor.execute("SELECT Aadhar_number FROM Personal_Information
     return [str(row[0]) for row in cursor.fetchall()]
 
 valid_doctor_ids = get_valid_doctor_ids()

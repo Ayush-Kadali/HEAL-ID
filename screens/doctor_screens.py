@@ -24,7 +24,9 @@ class DoctorMenu(Screen):
         yield Footer()
 
     def get_doctor_name(self) -> str:
+
         cursor.execute("SELECT Doctor_Name FROM Doctors WHERE Doctor_ID = %s", (self.doctor_id,))
+        #db.cursor.callproc('get_doctor_name ', (self.doctor_id, ))
         result = cursor.fetchone()
         return result[0] if result else "Unknown"
 
@@ -97,14 +99,19 @@ class ConsultationForm(Screen):
 
     def fetch_patient_info(self):
         aadhar_number = self.query_one("#aadhar").value
+        db.cursor.callproc('get_patient_info', (aadhar_number,))
+        """
         cursor.execute("""
+        """
             SELECT pi.Name, TIMESTAMPDIFF(YEAR, pi.Date_of_Birth, CURDATE()) AS Age, pi.Gender,
                    vs.Blood_Pressure, vs.Heart_Rate, vs.Respiratory_Rate, vs.Body_Temperature,
                    vs.Height, vs.Weight, vs.BMI
             FROM Personal_Information pi
             LEFT JOIN Vital_Signs vs ON pi.Aadhar_number = vs.Aadhar_number
             WHERE pi.Aadhar_number = %s
+            """
         """, (aadhar_number,))
+        """
         result = cursor.fetchone()
         
         if result:
@@ -133,10 +140,12 @@ class ConsultationForm(Screen):
             follow_up_date = self.query_one("#followup").value
             additional_notes = self.query_one("#notes").value
 
+            #db.cursor.callproc('submit_consultation', (aadhar_number, datetime.now().strftime("%Y-%m-%d"), symptoms, self.doctor_id, diagnosis, treatment_plan,''))
+
             cursor.execute("""
                 INSERT INTO Doctor_Visit 
                 (Aadhar_number, Visit_Date, Visit_Reason, Doctor_ID, Diagnosis, Treatment_Plan)
-                VALUES (%s, CURDATE(), %s, %s, %s, %s)
+                VALUES (%s, CURDATE(), %s, %s, %s, %s) 
             """, (aadhar_number, symptoms, self.doctor_id, diagnosis, treatment_plan))
             
             cursor.execute("SELECT LAST_INSERT_ID()")
